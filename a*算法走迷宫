@@ -1,0 +1,102 @@
+import java.util.ArrayList;
+import java.util.LinkedList;
+
+
+public class Solution {
+    public static void main(String[] args){
+        int [][] maze = {{0,1,0,0},{0,0,0,1},{1,0,1,0},{0,0,0,0}};
+        int end = maze.length - 1;
+        Node start = new Node(0,0,0,getCost(0,0,end));
+        Node cur = start;
+        boolean over = false;
+        Node last = null;
+        LinkedList<Node> open = new LinkedList<>();
+        LinkedList<Node> visited = new LinkedList<>();
+        open.add(cur);
+        while(!open.isEmpty() && !over){
+            int minCost = open.get(0).sumCost;
+            int minIndex = 0;
+            for(Node node : open){
+                if (node.sumCost < minCost){
+                    minCost = node.sumCost;
+                    minIndex = open.indexOf(node);
+                }
+            }
+            cur = open.remove(minIndex);
+            visited.add(cur);
+            if(check(cur,cur.x,cur.y+1,maze,open,visited,end))break;
+            if(check(cur,cur.x+1,cur.y,maze,open,visited,end))break;
+            if(check(cur,cur.x,cur.y-1,maze,open,visited,end))break;
+            if(check(cur,cur.x-1,cur.y,maze,open,visited,end))break;
+        }
+        last = open.getLast();
+        if(last != null && last.x == end && last.y == end){
+            int count = 1;
+            while(last != start){
+                last = last.parent;
+                count++;
+            }
+            System.out.print(count);
+        }
+        else System.out.print(-1);
+
+
+    }
+
+    private static boolean check(Node parent,int x,int y,int[][] maze,LinkedList<Node> open,LinkedList<Node> visited,int end){
+        if(x < 0 || x >end || y < 0 || y > end)return false;
+        if(maze[x][y] == 1)return false;
+        for(Node node : visited){
+            if(node.x == x && node.y == y)return false;
+        }
+        for(Node node : open){
+            if(node.x == x && node.y == y){
+                int sCost = parent.sCost + 1;
+                if(sCost < node.sCost){
+                    node.sCost = sCost;
+                    node.refresh(parent);
+                }
+            }
+            return false;
+        }
+        Node temp = new Node(x,y,parent.sCost + 1,getCost(x,y,end),parent);
+        open.add(temp);
+        if(x == end && y == end)return true;
+        else return false;
+    }
+
+    private static  int getCost(int x,int y,int end){
+        return (end - x) + (end - y);
+    }
+
+}
+
+class Node{
+    int x;
+    int y;
+    int sCost;
+    int eCost;
+    int sumCost;
+    Node parent;
+    Node(int x,int y,int s,int e){
+        this.x = x;
+        this.y = y;
+        this.sCost = s;
+        this.eCost = e;
+        this.sumCost = s + e;
+        this.parent = null;
+    }
+    Node(int x,int y,int s,int e,Node parent){
+        this.x = x;
+        this.y = y;
+        this.sCost = s;
+        this.eCost = e;
+        this.sumCost = s + e;
+        this.parent = parent;
+    }
+
+    public void refresh(Node parent){
+        this.sumCost = this.sCost + this.eCost;
+        this.parent = parent;
+    }
+}
